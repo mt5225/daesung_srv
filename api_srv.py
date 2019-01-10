@@ -2,6 +2,7 @@
 #############################
 # pip install pymysql
 # curl -i -X GET http://localhost:9006/alarms
+# curl -i -X GET http://localhost:9006/path
 # all ararms are stored in one mysql talbe named alarms
 #############################
 import logging
@@ -55,6 +56,15 @@ def alarms():
     msg_short = '#'.join(msg_array) if msg_array > 0 else ""
     return msg_short, 200
 
+@app.route('/path')
+def path():
+    msg_array = []
+    with open('patrol.txt') as fp:
+       for line in fp:
+           if len(line.strip()) > 2: msg_array.append(line.strip()) 
+    app.logger.debug(msg_array)
+    msg_short = '#'.join(msg_array) if msg_array > 0 else ""
+    return msg_short, 200
 
 if __name__ == '__main__':
     LOG_FILENAME = './hds_api_srv.log'

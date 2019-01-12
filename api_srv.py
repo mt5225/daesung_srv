@@ -50,8 +50,10 @@ def alarms():
         cctv_df = _CCTV_LOOKUP.loc[_CCTV_LOOKUP['ID'] == sensor_id]
         if len(cctv_df.index > 0):
             cctv_info = "%s" % (cctv_df.iloc[0].CCTV1)
+            building_info = "%s" % (cctv_df.iloc[0].Building)
+            floor_info = "%s" % (cctv_df.iloc[0].Floor)
             status = row[2]
-            msg_array.append("%s|%s|%s|%s"% (row[0], status,row[1], cctv_info))
+            msg_array.append("%s|%s|%s|%s|%s|%s"% (row[0], status,row[1], cctv_info, building_info,floor_info))
     app.logger.debug(msg_array)
     msg_short = '#'.join(msg_array) if msg_array > 0 else ""
     return msg_short, 200

@@ -10,6 +10,6 @@ CREATE TABLE IF NOT EXISTS alarms (
 );
 
 insert into alarms (occurrences, msg, sensor) values ('2019-01-10 05:31:38', 'fire_alarm', 'F11');
+insert into alarms (occurrences, msg, sensor) values ('2019-01-10 05:31:38', 'gas_alarm', 'L05');
 insert into alarms (occurrences, msg, sensor) values ('2019-01-10 05:31:38', 'fire_recover', 'F11');
-insert into alarms (occurrences, msg, sensor) values ('2019-01-10 05:31:38', 'gas_alarm', 'L24');
-insert into alarms (occurrences, msg, sensor) values ('2019-01-10 05:31:38', 'gas_recover', 'L24');
+insert into alarms (occurrences, msg, sensor) values ('2019-01-10 05:31:38', 'gas_recover', 'L05');

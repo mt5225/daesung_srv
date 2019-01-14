@@ -5,10 +5,8 @@ var fireSignManager = {};
 var RES_BASE = "http://localhost:8081/haesung_res/";
 var API_BASE = "http://localhost:9006/";
 var LISTENING = false;
-var T_Live_Fire_Alarm = {};
-var T_Live_Gas_Alarm = {};
-var T_FireObj_List = {};
-var T_GasObj_List = {};
+var T_Live_Sensor_Alarm = {};
+var T_Effect_Obj_List = {};
 var objSign = gui.createLabel("<color=red>IDLE</color>", Rect(5, 38, 120, 30));
 var patrolPath = [];
 var PATROL_STAY_TIME = 10000;
@@ -290,105 +288,62 @@ function fly_to_sensor_level(sensorObj, msgString) {
 	}
 }
 
-function show_fire(sensorObj, camObj) {
-	if (T_FireObj_List[sensorObj] == null) {
+function show_alarm_effect(sensorObj, camObj) {
+	if (T_Effect_Obj_List[sensorObj] == null) {
 		stop_patrol();
-		fly_to_sensor_level(sensorObj, T_Live_Fire_Alarm[sensorObj.uid]);
+		fly_to_sensor_level(sensorObj, T_Live_Sensor_Alarm[sensorObj.uid]);
 		util.setTimeout(function () {
-			var fireEffectObject = object.create("4483E64D87BA49F8AA9AAA693194A541");
-			fireEffectObject.setPosition(sensorObj.center);
-			T_FireObj_List[sensorObj] = fireEffectObject;
+			var effectObject = null;
+			if (string.startswith(sensorObj.uid, "F")) {
+				effectObject = object.create("4483E64D87BA49F8AA9AAA693194A541");
+			} else {
+				effectObject = object.create("4C818E5DF22C429FA73B47F88DBCD7BA");
+			}
+			effectObject.setPosition(sensorObj.center);
+			T_Effect_Obj_List[sensorObj] = effectObject;
 			open_camera_live_feed(camObj);
 		}, 2000);
 
 	}
 }
 
-function show_gas(sensorObj, camObj) {
-	if (T_GasObj_List[sensorObj] == null) {
-		stop_patrol();
-		fly_to_sensor_level(sensorObj, T_Live_Gas_Alarm[sensorObj.uid]);
-		util.setTimeout(function () {
-			var gasEffectObject = object.create("4C818E5DF22C429FA73B47F88DBCD7BA");
-			gasEffectObject.setPosition(sensorObj.center);
-			T_GasObj_List[sensorObj] = gasEffectObject;
+function remove_recovery_alarm(sensorObj, camObj) {
+	if (table.containskey(T_Effect_Obj_List, sensorObj)) {
+		if (T_Effect_Obj_List[sensorObj] != null) {
+			fly_to_sensor_level(sensorObj, T_Live_Sensor_Alarm[sensorObj.uid]);
+			T_Effect_Obj_List[sensorObj].destroy();
 			open_camera_live_feed(camObj);
-		}, 2000);
-	}
-}
-
-function remove_recovery_fire_alarm(item) {
-	if (table.containskey(T_FireObj_List, item)) {
-		if (T_FireObj_List[item] != null) {
-			fly_to_sensor_level(item, T_Live_Fire_Alarm[item.uid]);
-			T_FireObj_List[item].destroy();
 		}
-		table.remove(T_FireObj_List, item);
+		table.remove(T_Effect_Obj_List, sensorObj);
 	}
 }
 
-function remove_recovery_gas_alarm(item) {
-	if (table.containskey(T_GasObj_List, item)) {
-		if (T_GasObj_List[item] != null) {
-			fly_to_sensor_level(item, T_Live_Gas_Alarm[item.uid]);
-			T_GasObj_List[item].destroy();
-		}
-		table.remove(T_GasObj_List, item);
-	}
-}
-
-function update_fire_alarm_table() {
-	foreach(var item in vpairs(table.keys(T_Live_Fire_Alarm))) {
-		var tmpArray = string.split(T_Live_Fire_Alarm[item], "|");
+function update_sensor_alarm_table() {
+	foreach(var item in vpairs(table.keys(T_Live_Sensor_Alarm))) {
+		var tmpArray = string.split(T_Live_Sensor_Alarm[item], "|");
 		var sensor_status = tmpArray[1];
-		var fireObj = object.find(item);
-		var camObj = object.find(tmpArray[3])
-			if (fireObj != null && camObj != null) {
-				if (sensor_status == "fire_alarm") {
-					util.setTimeout(function () {
-						show_fire(fireObj, camObj);
-					}, 500);
-				} else {
-					remove_recovery_fire_alarm(fireObj);
-
-				}
+		var sensorObj = object.find(item);
+		var camObj = object.find(tmpArray[3]);
+		if (sensorObj != null && camObj != null) {
+			if (sensor_status == "fire_alarm" || sensor_status == "gas_alarm") {
+				util.setTimeout(function () {
+					show_alarm_effect(sensorObj, camObj);
+				}, 500);
+			} else {
+				remove_recovery_alarm(sensorObj, camObj);
 			}
-	}
-}
-
-function update_gas_alarm_table() {
-	foreach(var item in vpairs(table.keys(T_Live_Gas_Alarm))) {
-		var tmpArray = string.split(T_Live_Gas_Alarm[item], "|");
-		var sensor_status = tmpArray[1];
-		var gasObj = object.find(item);
-		var camObj = object.find(tmpArray[3])
-			if (gasObj != null && camObj != null) {
-				if (sensor_status == "gas_alarm") {
-					util.setTimeout(function () { ;
-						show_gas(gasObj, camObj);
-					}, 500);
-				} else {
-					remove_recovery_gas_alarm(gasObj);
-				}
-			}
-	}
-}
-
-function remove_all_fire_alarm() {
-	foreach(var item in vpairs(table.keys(T_FireObj_List))) {
-		if (T_FireObj_List[item] != null) {
-			T_FireObj_List[item].destroy();
 		}
 	}
 }
 
-function remove_all_gas_alarm() {
-	foreach(var item in vpairs(table.keys(T_GasObj_List))) {
-		if (T_GasObj_List[item] != null) {
-			T_GasObj_List[item].destroy();
+function remove_all_sensor_alarm() {
+	foreach(var item in vpairs(table.keys(T_Effect_Obj_List))) {
+		if (T_Effect_Obj_List[item] != null) {
+			T_Effect_Obj_List[item].destroy();
 		}
 	}
 }
+
 //create UI button with actions
 gui.createButton("Listen", Rect(40, 220, 60, 30), function () {
 	if (LISTENING == false) {
@@ -397,8 +352,6 @@ gui.createButton("Listen", Rect(40, 220, 60, 30), function () {
 		LISTENING = true;
 		util.setInterval(function () {
 			if (LISTENING) {
-				//polling for fire information
-
 				util.download({
 					"url": API_BASE + "alarms",
 					"type": "text",
@@ -408,20 +361,13 @@ gui.createButton("Listen", Rect(40, 220, 60, 30), function () {
 							//  messages array separated by #
 							var msgArray = string.split(rs, "#");
 							for (var i = 0; i < array.count(msgArray); i++) {
-								//split and save to live event table
 								tmpArray = string.split(msgArray[i], "|");
-								if (tmpArray[1] == 'fire_alarm' || tmpArray[1] == 'fire_recover') {
-									T_Live_Fire_Alarm[tmpArray[2]] = msgArray[i];
-								} else {
-									T_Live_Gas_Alarm[tmpArray[2]] = msgArray[i];
-								}
+								T_Live_Sensor_Alarm[tmpArray[2]] = msgArray[i];
 							}
-							update_fire_alarm_table();
-							update_gas_alarm_table();
+							update_sensor_alarm_table();
 
 						} else {
-							remove_all_fire_alarm();
-							remove_all_gas_alarm();
+							remove_all_sensor_alarm();
 						}
 
 					},
@@ -438,14 +384,11 @@ gui.createButton("Listen", Rect(40, 220, 60, 30), function () {
 gui.createButton("Reset", Rect(40, 260, 60, 30), function () {
 	util.clearAllTimers();
 	util.setTimeout(function () {
-		remove_all_fire_alarm();
-		remove_all_gas_alarm();
+		remove_all_sensor_alarm();
 		stop_patrol();
 		util.externalEval("layer.closeAll();");
-		table.clear(T_FireObj_List);
-		table.clear(T_GasObj_List);
-		table.clear(T_Live_Fire_Alarm);
-		table.clear(T_Live_Gas_Alarm);
+		table.clear(T_Effect_Obj_List);
+		table.clear(T_Live_Sensor_Alarm);
 	}, 500);
 	gui.destroy(objSign);
 	objSign = gui.createLabel("<color=red>IDLE</color>", Rect(5, 38, 120, 30));

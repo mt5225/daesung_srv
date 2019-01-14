@@ -78,11 +78,14 @@ function patrol() {
 					var camObj = object.find(patrolPath[_patrol_index]);
 					if (camObj != null) {
 						var pos = camObj.pos;
-						camera.flyTo({
-							"eye": Vector3(pos.x + 5, pos.y + 5, pos.z + 5),
-							"target": pos,
-							"time": 2.0
-						})
+						fly_to_sensor_level_patrol(camObj);
+						util.setTimeout(function() {
+							camera.flyTo({
+								"eye": Vector3(pos.x + 10, pos.y + 10, pos.z + 10),
+								"target": pos,
+								"time": 2.0
+							});
+						}, 2000);
 						open_camera_live_feed(camObj);
 					}
 					_patrol_index++;
@@ -212,79 +215,97 @@ function sensorinit() {
 init();
 sensorinit();
 
+function get_building_id_by_name(buildingStr) {
+	var building_id = -1;
+	if (buildingStr == '101') {
+		building_id = 0
+	}
+	if (buildingStr == '103') {
+		building_id = 1
+	}
+	if (buildingStr == '105A') {
+		building_id = 2
+	}
+	if (buildingStr == '105B') {
+		building_id = 3
+	}
+	if (buildingStr == '106') {
+		building_id = 4
+	}
+	if (buildingStr == '107') {
+		building_id = 5
+	}
+	if (buildingStr == '109') {
+		building_id = 6
+	}
+	if (buildingStr == '111') {
+		building_id = 7
+	}
+	if (buildingStr == '117') {
+		building_id = 8
+	}
+	if (buildingStr == '201') {
+		building_id = 9
+	}
+	if (buildingStr == '202') {
+		building_id = 10
+	}
+	if (buildingStr == '203') {
+		building_id = 11
+	}
+	if (buildingStr == '204') {
+		building_id = 12
+	}
+	if (buildingStr == '303') {
+		building_id = 13
+	}
+	if (buildingStr == '304') {
+		building_id = 14
+	}
+	if (buildingStr == '401402') {
+		building_id = 15
+	}
+	return building_id;
+}
+
+function get_floor_index(floorStr) {
+	var floor_id = 0;
+	if (floorStr == '0') {
+		floor_id = 0
+	}
+	if (floorStr == '1') {
+		floor_id = 1
+	}
+	if (floorStr == '2') {
+		floor_id = 2
+	}
+	if (floorStr == '3') {
+		floor_id = 3
+	}
+	return floor_id;
+}
+
 //fly to  sensor level
-function fly_to_sensor_level(sensorObj, msgString) {
-	if (msgString != '') {
-		tmpArray = string.split(msgString, "|");
+function fly_to_sensor_level(sensorObj, MsgStr) {
+	if (MsgStr != '') {
+		tmpArray = string.split(MsgStr, "|");
 		if (tmpArray[4] == 'Campus') {
 			fly_sensor_outdoor(sensorObj);
 		} else {
-			var building_id = -1; // fly to campus
-			if (tmpArray[4] == '101') {
-				building_id = 0
-			}
-			if (tmpArray[4] == '103') {
-				building_id = 1
-			}
-			if (tmpArray[4] == '105A') {
-				building_id = 2
-			}
-			if (tmpArray[4] == '105B') {
-				building_id = 3
-			}
-			if (tmpArray[4] == '106') {
-				building_id = 4
-			}
-			if (tmpArray[4] == '107') {
-				building_id = 5
-			}
-			if (tmpArray[4] == '109') {
-				building_id = 6
-			}
-			if (tmpArray[4] == '111') {
-				building_id = 7
-			}
-			if (tmpArray[4] == '117') {
-				building_id = 8
-			}
-			if (tmpArray[4] == '201') {
-				building_id = 9
-			}
-			if (tmpArray[4] == '202') {
-				building_id = 10
-			}
-			if (tmpArray[4] == '203') {
-				building_id = 11
-			}
-			if (tmpArray[4] == '204') {
-				building_id = 12
-			}
-			if (tmpArray[4] == '303') {
-				building_id = 13
-			}
-			if (tmpArray[4] == '304') {
-				building_id = 14
-			}
-			if (tmpArray[4] == '401402') {
-				building_id = 15
-			}
-			var floor_id = 0;
-			if (tmpArray[5] == '0') {
-				floor_id = 0
-			}
-			if (tmpArray[5] == '1') {
-				floor_id = 1
-			}
-			if (tmpArray[5] == '2') {
-				floor_id = 2
-			}
-			if (tmpArray[5] == '3') {
-				floor_id = 3
-			}
-			fly_indoor(building_id, floor_id);
-
+			fly_indoor(get_building_id_by_name(tmpArray[4]), get_floor_index(tmpArray[5]));
 		}
+	}
+}
 
+function fly_to_sensor_level_patrol(sensorObj) {
+	var MsgStr = sensorObj.name;
+	if (MsgStr != '') {
+		tmpArray = string.split(MsgStr, "_");
+		if (tmpArray[1] == 'Campus') {
+			fly_sensor_outdoor(sensorObj);
+		} else {
+			fly_indoor(get_building_id_by_name(tmpArray[1]), get_floor_index(tmpArray[2]));
+		}
 	}
 }
 
